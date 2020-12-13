@@ -3,11 +3,11 @@ from functools import wraps
 
 from django.conf import settings
 from django.http import Http404
+from django.urls import reverse
 
 from social_core.utils import setting_name, module_member, get_strategy
 from social_core.exceptions import MissingBackend
 from social_core.backends.utils import get_backend
-from .compat import reverse
 
 
 BACKENDS = settings.AUTHENTICATION_BACKENDS

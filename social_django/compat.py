@@ -1,34 +1,37 @@
 # coding=utf-8
-import six
-import django
+import warnings
+
+from django.conf import settings
 from django.db import models
-
-
-try:
-    from django.urls import reverse
-except ImportError:
-    from django.core.urlresolvers import reverse
+from social_core.utils import setting_name
 
 try:
     from django.utils.deprecation import MiddlewareMixin
 except ImportError:
     MiddlewareMixin = object
 
+POSTGRES_JSONFIELD = getattr(settings, setting_name('POSTGRES_JSONFIELD'), False)
 
-def get_rel_model(field):
-    if django.VERSION >= (1, 9):
-        return field.remote_field.model
+if POSTGRES_JSONFIELD:
+    warnings.warn(
+        'SOCIAL_AUTH_POSTGRES_JSONFIELD has been renamed to '
+        'SOCIAL_AUTH_JSONFIELD_ENABLED and will be removed in the next release.'
+    )
+    JSONFIELD_ENABLED = True
+else:
+    JSONFIELD_ENABLED = getattr(settings, setting_name('JSONFIELD_ENABLED'), False)
 
-    user_model = field.rel.to
-    if isinstance(user_model, six.string_types):
-        app_label, model_name = user_model.split('.')
-        user_model = models.get_model(app_label, model_name)
-    return user_model
-
-
-def get_request_port(request):
-    if django.VERSION >= (1, 9):
-        return request.get_port()
-
-    host_parts = request.get_host().partition(':')
-    return host_parts[2] or request.META['SERVER_PORT']
+if JSONFIELD_ENABLED:
+    JSONFIELD_CUSTOM = getattr(settings, setting_name('JSONFIELD_CUSTOM'), None)
+    if JSONFIELD_CUSTOM is not None:
+        try:
+            from django.utils.module_loading import import_string as import_module
+        except ImportError:
+            from importlib import import_module
+        JSONField = import_module(JSONFIELD_CUSTOM)
+    try:
+        from django.db.models import JSONField
+    except ImportError:
+        from django.contrib.postgres.fields import JSONField
+else:
+    JSONField = models.TextField

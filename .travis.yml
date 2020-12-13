@@ -16,4 +16,4 @@ matrix:
 
 install: pip install tox-travis
 
-script: tox
+script: env TOX_SKIP_ENV='py.*-django-master' tox

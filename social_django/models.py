@@ -1,13 +1,10 @@
 """Django ORM models for Social Auth"""
-import six
-
 from django.db import models
 from django.conf import settings
 from django.db.utils import IntegrityError
 
 from social_core.utils import setting_name
 
-from .compat import get_rel_model
 from .storage import DjangoUserMixin, DjangoAssociationMixin, \
                      DjangoNonceMixin, DjangoCodeMixin, \
                      DjangoPartialMixin, BaseDjangoStorage
@@ -62,8 +59,7 @@ class AbstractUserSocialAuth(models.Model, DjangoUserMixin):
 
     @classmethod
     def user_model(cls):
-        user_model = get_rel_model(field=cls._meta.get_field('user'))
-        return user_model
+        return cls._meta.get_field('user').remote_field.model
 
 
 class UserSocialAuth(AbstractUserSocialAuth):
